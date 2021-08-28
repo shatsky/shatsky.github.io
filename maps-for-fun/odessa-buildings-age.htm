@@ -1,21 +1,311 @@
-<html> 
+<html>
   <head>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
     <!-- Make sure you put this AFTER Leaflet's CSS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/gh/shatsky/maps-for-fun@master/kdbush/kdbush.js"></script>
+    <style>
+
+.leaflet-grab {cursor: auto;}
+
+    </style>
   </head>
-  <body>
+  <body style="font-family: sans-serif">
     <div id="mapid" style="height: 100%"></div>
     <script>
 
 var mymap = L.map('mapid').setView([46.4788, 30.7277], 13);
-//L.tileLayer('http://127.0.0.1:8000/{z}/{x}/{y}.png', {
-L.tileLayer('https://github.com/shatsky/maps-for-fun-tiles/raw/master/odessa-buildings-age/{z}/{x}/{y}.png', {
-    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="https://domofoto.ru/">Domofoto</a>, <a href="http://eugene.shatsky.net/">Eugene Shatsky</a>',
-    maxZoom: 18,
-    tileSize: 512,
-    zoomOffset: -1,
+//L.tileLayer('http://127.0.0.1:8000/tiles/{z}/{x}/{y}.png', {
+L.tileLayer('https://raw.githubusercontent.com/shatsky/maps-for-fun-data/2021-08-28/odessa-buildings-age/tiles/{z}/{x}/{y}.png', {
+//L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="https://domofoto.ru/">Domofoto</a>, <a href="http://eugene.shatsky.net/">Eugene Shatsky</a>',
+  maxZoom: 18,
+  crossOrigin: true
 }).addTo(mymap);
+
+function get_year(color) {
+  return 1794+(2021-1794)*(color[2]/255)
+}
+
+// global state vars to hold current tile and its pixel data
+var current_tile;
+var canvas = document.createElement('canvas');
+var tile_size = 256;
+canvas.width = tile_size;
+canvas.height = tile_size;
+var canvas_context = canvas.getContext('2d');
+var current_tile_image_data;
+
+function get_tile_by_coord(x, y) {
+  var tiles = Object.values(mymap._layers)[0]._tiles;
+  var tile_x = Math.floor(x/tile_size);
+  var tile_y = Math.floor(y/tile_size);
+  console.log(tile_x+':'+tile_y+':'+mymap.getZoom())
+  var tile = tiles[tile_x+':'+tile_y+':'+mymap.getZoom()];
+  if (tile != current_tile) {
+    current_tile = tile;
+    canvas_context.drawImage(tile.el, 0, 0);
+    current_tile_image_data = canvas_context.getImageData(0, 0, tile_size, tile_size);
+    console.log('current tile', current_tile)
+  }
+  return;
+}
+
+// -1 div 4 = 3
+Number.prototype.mod = function(n) {
+  return ((this%n)+n)%n;
+};
+
+// RGBA
+function get_color(x, y) {
+  // if not in current tile, find tile, copy to canvas and get image data
+  get_tile_by_coord(x, y);
+  var tile_x = x.mod(tile_size);
+  var tile_y = y.mod(tile_size);
+
+  var offset = (current_tile_image_data.width*tile_y+tile_x)*4;
+  //console.log('offset', offset)
+  var color =  (
+    current_tile_image_data.data[offset]*2**32+
+    current_tile_image_data.data[offset+1]*2**16+
+    current_tile_image_data.data[offset+2]*2**8+
+    current_tile_image_data.data[offset+3]*2**0
+  );
+  //console.log('coords and color', x, y, color)
+  return color;
+}
+
+function get_border(x, y) {
+  // while not uppermost pixel with same color
+  var color = get_color(x, y)
+  while (y>0 && get_color(x, y-1)==color) {
+    y -= 1;
+  }
+  border = [[x, y]];
+  // bbox
+  var [min_x, min_y, max_x, max_y] = [x, y, x, y];
+  // up, right, down, left
+  var directions = [[0, -1], [+1, 0], [0, +1], [-1, 0]];
+  var current_direction_i = 0;
+  // while first and last border points are not same point
+  do {
+    //console.log('border point', x, y)
+    // loop directions until neighbour has same color
+    for (var i=0; i<4; i++) {
+      //console.log((current_direction_i+i).mod(4))
+      direction_x = directions[(current_direction_i+i).mod(4)][0];
+      direction_y = directions[(current_direction_i+i).mod(4)][1];
+      if (get_color(x+direction_x, y+direction_y)==color) {
+        //console.log('found next border point')
+        x += direction_x;
+        y += direction_y;
+        border.push([x, y]);
+        //console.log('border point', x, y)
+        if (x<min_x) min_x = x;
+        if (y<min_y) min_y = y;
+        if (x>max_x) max_x = x;
+        if (y>max_y) max_y = y;
+        current_direction_i = (current_direction_i+i-1).mod(4);
+        break;
+      }
+    }
+    //context.putImageData(pixel, border[border.length-1][0], border[border.length-1][1])
+    if (border.length > 65536) break;
+  } while (!(border[0][0]==border[border.length-1][0] && border[0][1]==border[border.length-1][1]));
+  //return [border, [[min_x, min_y], [max_x, max_y]]];
+  return [border, [
+    // TODO
+    //mymap.unproject(L.point(min_x, min_y)),
+    //mymap.unproject(L.point(max_x, max_y))
+    mymap.unproject(L.point(min_x, max_y)),
+    mymap.unproject(L.point(max_x, min_y))
+  ]];
+}
+
+function point_in_polygon(point, polygon) {
+  x0 = point[0]
+  y0 = point[1]
+  var intersection_count = 0;
+  // for each polygon line
+  for(i=0; i<polygon.length-1; i++) {
+    // get intersection point of polygon line and vertical line crossing the point
+    // check if it's between polygon points and above the point
+    x1 = polygon[i][0]
+    y1 = polygon[i][1]
+    x2 = polygon[i+1][0]
+    y2 = polygon[i+1][1]
+    if (x1 != x2) {
+      // if x between x1 and x2
+      if (((x1<x2) && ((x0>x1) && (x0<x2))) || ((x1>x2) && ((x0>x2) && (x0<x1)))) {
+        // if y above
+        // x=x0?
+        if (((x0-x1)/(x2-x1))*(y2-y1)+y1>y0) {
+          intersection_count++;
+        } // else no intersection, TODO what if y==y0?
+      } // else no intersection, TODO what if x0==x1 or x0==x2?
+    } // else no intersection, TODO what if x0==x1==x2?
+  }
+  return intersection_count%2==1
+}
+
+function point_in_polygon_with_holes(point, polygon_with_holes) {
+  if (!point_in_polygon(point, polygon_with_holes[0])) {
+    return false;
+  } else {
+    for (i=1; i<polygon_with_holes.length; i++) {
+      if (point_in_polygon(point, polygon_with_holes[i])) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+var index_osm_building_ids_by_latlng = [];
+
+function format_content(building) {
+  var content = ''
+  if ('df_id' in building) {
+    content += 'Domofoto building <a href="https://domofoto.ru/object/'+df_building_id+'/">#'+df_building_id+'</a>'
+  }
+  return content;
+}
+
+function render_popup_data() {
+  var content = ''
+  var data = popup_data;
+  for (const osm_building_id of Object.keys(data)) {
+    var osm_way_or_relation_url = 'https://www.openstreetmap.org/way/'+osm_building_id;
+    content += '<a href="' + osm_way_or_relation_url + '">OSM ' + (true ? 'way' : 'relation') + ' #' + osm_building_id + '</a><br>';
+    if (data[osm_building_id].df_buildings === undefined) {
+      continue;
+    }
+    for (const df_building_id of Object.keys(data[osm_building_id].df_buildings)) {
+      var df_object_url = 'https://domofoto.ru/object/' + df_building_id + '/';
+      content += '<a href="' + df_object_url + '">Domofoto object #' + df_building_id + '</a><br>';
+      var df_building_data = data[osm_building_id].df_buildings[df_building_id]
+      if (df_building_data.address !== undefined) {
+        content += 'Address: ' + df_building_data.address + '<br>';
+      }
+      if (df_building_data.name_or_purpose !== undefined) {
+        content += 'Name/purpose: ' + df_building_data.name_or_purpose + '<br>';
+      }
+      if (df_building_data.construction_started !== undefined) {
+        content += 'Construction started: ' + df_building_data.construction_started + '<br>';
+      }
+      if (df_building_data.construction_finished !== undefined) {
+        content += 'Construction finished: ' + df_building_data.construction_finished + '<br>';
+      }
+      if (df_building_data.photos !== undefined) {
+        for (const photo_id of df_building_data.photos) {
+          var df_photo_url = 'https://domofoto.ru/photo/'+photo_id+'/?vid='+df_building_id+'/';
+          var photo_id_7digit = (photo_id+10000000+'').slice(1);
+          var df_photo_small_url = 'https://domofoto.ru/photo/'+photo_id_7digit.slice(0,2)+'/'+photo_id_7digit.slice(2,4)+'/'+photo_id_7digit.slice(4,6)+'/'+photo_id+'_s.jpg';
+          content += '<div style="width:250px;height:187px;background:grey"><a href="' + df_photo_url + '"><img src="' + df_photo_small_url + '" style="max-width:100%;max-height:100%;"></a></div><br>';
+          // TODO clean up, handle image loading issues
+          /*
+          var img=new Image();
+          img.src = df_photo_small_url;
+          img.onload = function() {
+              popup.setContent(content).openOn(mymap);
+          };
+          return;
+          */
+          break;
+        }
+      }
+    }
+  }
+  popup.setContent(content).openOn(mymap);
+}
+
+var popup = L.popup();
+var popups = [];
+
+var kdbush_index;
+
+var BASE_URL = 'http://127.0.0.1:8000/';
+
+var pending_count = 0;
+var popup_data = {};
+var added_layers = [];
+
+mymap.on('click', function handle_map_click(ev) {
+  // if buildings index not loaded: load and simulate another click
+  if (kdbush_index === undefined) {
+    console.log(kdbush_index)
+    fetch(
+      BASE_URL+'buildings_index.bin'
+    ).then((response) => {
+      return response.arrayBuffer();
+    }).then((array_buffer) => {
+      kdbush_index = KDBush.from(array_buffer);
+      handle_map_click(ev);
+    });
+    return;
+  }
+  console.log('clicked latlng', ev.latlng)
+  popup.setLatLng(ev.latlng);
+  var clicked_coords = mymap.project(ev.latlng);
+  // remove previously added stuff
+  while (added_layers.length > 0) {
+    added_layers.pop().remove();
+  }
+  // create initial popup
+  console.log('getting area border and bbox')
+  var [border, bbox] = get_border(Math.floor(clicked_coords.x), Math.floor(clicked_coords.y));
+  // if border is open: error
+  if (!(border[0][0]==border[border.length-1][0] && border[0][1]==border[border.length-1][1])) {
+    popup.setContent('Error: exceeded length limit while finding clicked area border');
+    return;
+  }
+  //var rect = L.rectangle(bbox, {color: 'white', weight: 1}).addTo(mymap)
+  var polyline_latlngs = [];
+  for (var i=0; i<border.length; i++) {
+    var polyline_point_latlng = mymap.unproject(L.point(border[i][0], border[i][1]))
+    polyline_latlngs.push([polyline_point_latlng.lat, polyline_point_latlng.lng])
+  }
+  added_layers.push(L.polyline(polyline_latlngs, {color: 'white'}).addTo(mymap));
+  console.log('done')
+  buildings = []
+  // find osm building ids of osm building index points in bbox
+  
+  popup_data = {}
+  for (const osm_building_id of kdbush_index.range(bbox[0].lat, bbox[0].lng, bbox[1].lat, bbox[1].lng)) {
+    pending_count++;
+    fetch(BASE_URL+'osm_buildings/w'+osm_building_id+'.json').then((response) => {
+      return response.json();
+    }).then((osm_building_data) => {
+      if (!point_in_polygon_with_holes([ev.latlng.lat, ev.latlng.lng], osm_building_data.polygon)) {
+        pending_count--;
+        return;
+      }
+      popup_data[osm_building_id] = {}
+      // TODO render popup_data[osm_building_id].polygon
+      popup_data[osm_building_id].df_buildings = {}
+      // TODO if osm_building_data.df_ids undefined
+      if (osm_building_data.df_ids == undefined) {
+        osm_building_data.df_ids = []
+      }
+      for (const df_building_id of osm_building_data.df_ids) {
+        pending_count++;
+        fetch(BASE_URL+'df_buildings/'+df_building_id+'.json').then((response) => {
+          return response.status==200 ? response.json() : {};
+        }).then((df_building_data) => {
+          popup_data[osm_building_id].df_buildings[df_building_id] = df_building_data;
+          pending_count--;
+          if (pending_count==0) {
+            render_popup_data();
+          }
+        });
+      }
+      pending_count--;
+      if (pending_count==0) {
+        render_popup_data();
+      }
+    });
+  }
+});
 
     </script>
   </body>
