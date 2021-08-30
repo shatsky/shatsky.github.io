@@ -249,6 +249,9 @@ mymap.on('click', function handle_map_click(ev) {
   console.log('clicked latlng', ev.latlng)
   popup.setLatLng(ev.latlng);
   var clicked_coords = mymap.project(ev.latlng);
+  if (get_color(Math.floor(clicked_coords.x), Math.floor(clicked_coords.y))==255) { // RGBA black
+    return;
+  }
   // remove previously added stuff
   while (added_layers.length > 0) {
     added_layers.pop().remove();
