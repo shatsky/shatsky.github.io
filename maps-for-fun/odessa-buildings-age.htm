@@ -1,5 +1,6 @@
 <html>
   <head>
+    <title>Odessa Buildings Age Map</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
     <!-- Make sure you put this AFTER Leaflet's CSS -->
@@ -12,15 +13,15 @@
     </style>
   </head>
   <body style="font-family: sans-serif; height: 100%; display: flex; flex-flow: column; margin: 0">
+    <div style="background: linear-gradient(90deg, #ffc800, #00c8ff); text-align:center"><span style="float: left">1794</span>Odessa Buildings Age Map<span style="float: right">2021</span></div>
     <div id="mapid" style="height: 100%"></div>
-    <div style="background: linear-gradient(90deg, #ffc800, #00c8ff)">1794<span style="float: right">2021</span></div>
     <script>
 
 var mymap = L.map('mapid').setView([46.4788, 30.7277], 13);
 //L.tileLayer('http://127.0.0.1:8000/tiles/{z}/{x}/{y}.png', {
 L.tileLayer('https://raw.githubusercontent.com/shatsky/maps-for-fun-data/2021-08-28/odessa-buildings-age/tiles/{z}/{x}/{y}.png', {
 //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="https://domofoto.ru/">Domofoto</a>, <a href="http://eugene.shatsky.net/">Eugene Shatsky</a>',
+  attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="https://domofoto.ru/">Domofoto</a>, <a href="http://eugene.shatsky.net/">Eugene Shatsky</a> | <a href="https://github.com/shatsky/maps-for-fun/blob/master/README.md">How to make a map like this</a>',
   maxZoom: 18,
   crossOrigin: true
 }).addTo(mymap);
