@@ -1,0 +1,65 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Templates shouldn't be a mess</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container py-5">
+      <!--header end-->
+
+      <h1>Templates shouldn't be a mess</h1>
+      <p>📅 2016-03-16</p>
+      <p>On formatting of HTML templates</p>
+<p>I was working on another Django project when I decided to write down my thoughts on readable template code formatting.</p>
+<p>I believe that templates are more readable when they're written with the idea that a clean, correctly indented hypertext should be produced.
+Django documentation states that there are template variables and template tags in the template language. In my formatting explanation, I call both 'tags' and divide them into text-producing and non-text-producing ones.
+Django documentation samples and lots of coders mix up indentation of hypertext and template tags. I use independent parallel indentation for non-text-producing template tags which are placed on separate lines out of hypertext, and I separate such tags from surrounding hypertext with empty lines.</p>
+<p>In detail:</p>
+<ul>
+<li>hypertext is written with common, global indentation hierarchy</li>
+<li>text-producing template tags (variable substitutions, includes, etc.) are placed like the hypertext which they produce:<ul>
+<li>tags which produce inline hypertext fragments are placed inside the hypertext lines</li>
+<li>tags which produce (multi)line hypertext fragments are placed on separate lines, indented like the hypertext which they produce, following the global hypertext indentation</li>
+</ul>
+</li>
+<li>non-text-producing, or logic-controlling template tags, which generate no text themselves, but define the logic of template processing (conditional operators, loops, variable assignments, etc.), are another thing:<ul>
+<li>tags which control inline hypertext fragments (e. g. conditional block which controls a hypertext tag attribute) are placed within these lines</li>
+<li>tags which control (multi)line hypertext fragments or no hypertext at all are placed on separate lines, following their own global indentation hierarchy, independent from the one of the hypertext; such template tag lines are separated by empty lines from the hypertext and hypertext-producing template tags around them</li>
+</ul>
+</li>
+</ul>
+<p>Example:</p>
+<pre><code>&lt;html&gt;
+  &lt;head&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    {% include 'header.htm' %}
+
+{% if list %}
+
+    &lt;ul&gt;
+
+  {% for item in list %}
+
+      &lt;li&gt;{{ item }}&lt;/li&gt;
+
+  {% endfor %}
+
+    &lt;/ul&gt;
+
+{% endif %}
+
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+      <hr>
+      <a href="index.html">Return to index</a>
+
+    </div>
+    <!--footer begin-->
+  </body>
+</html>

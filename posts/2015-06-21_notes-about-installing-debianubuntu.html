@@ -1,0 +1,33 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Notes about installing Debian/Ubuntu from other Linux distro with debootstrap</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container py-5">
+      <!--header end-->
+
+      <h1>Notes about installing Debian/Ubuntu from other Linux distro with debootstrap</h1>
+      <p>📅 2015-06-21</p>
+      <p>Why need OS installer when there's booted Linux?</p>
+<p>Existing guides are either incomplete, inaccurate or assume that the base system is Debian or Ubuntu: https://help.ubuntu.com/community/Installation/FromLinux#Without_CD</p>
+<p>If you want to set it up manually, you can download the latest .tar.gz package from http://ftp.debian.org/debian/pool/main/d/debootstrap/ and run debootstrap from the source tree with DEBOOTSTRAP_DIR env variable. Note that it requires devices.tar.gz to be present in the same directory; you can either build it by running</p>
+<pre><code>make devices.tar.gz
+</code></pre>
+<p>or extract prebuilt one from debootstrap .deb package. Besides, it can require explicit arch and mirror URL in commandline, e. g.:</p>
+<pre><code>DEBOOTSTRAP_DIR=. ./debootstrap --arch=i386 vivid /mnt/installroot https://mirrors.kernel.org/ubuntu
+</code></pre>
+<p>Without the explicit URL it can attempt to get Release file from https://mirrors.kernel.org/debian even if an Ubuntu release (e. g. vivid) is specified.
+All external dependencies are usually present in any Linux system, with the possible exception for Perl, which I installed in my live Slax <a href="https://www.slax.org/hi/modules.php?detail=perl">with no effort</a> (you may also find the previous blogpost about booting Slax from the Windows partition without using removeable media useful).</p>
+<p>If everything has been set up properly, debootstrap should succeed installing the base system and you can proceed with mounting, chrooting, basic configuration (remember to configure apt sources) and installing packages. You can find names of Ubuntu metapackages for installing the whole system at https://help.ubuntu.com/community/MetaPackages (although it misses several variants like lubuntu-core).</p>
+      <hr>
+      <a href="index.html">Return to index</a>
+
+    </div>
+    <!--footer begin-->
+  </body>
+</html>

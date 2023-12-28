@@ -1,0 +1,28 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Linux Multiseat and VT Subsystem</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container py-5">
+      <!--header end-->
+
+      <h1>Linux Multiseat and VT Subsystem</h1>
+      <p>📅 2014-09-06</p>
+      <p>Found workaround for irritating bug with VT switch in Linux multiseat setups</p>
+<p>Some Linux multiseat users run into an annoying problem: when a seat0 user logs out or Ctrl+Alt+F<code>&lt;N&gt;</code> is pressed on the seat0 keyboard, non-seat0 display blanks or drops to text console; there is no way to bring the Х-server back (it's only possible to kill its process, which causes DM to start a new one with a fresh greeter).</p>
+<p>This problem is related to the in-kernel virtual terminals subsystem (CONFIG_VT), which is enabled in almost any desktop Linux system and knows nothing about the multiseat. Terminals are displayed on a single display; the algorithm for picking this display in complicated dynamic multihead setups is quite confusing (it would be nice to hear a comment from kernel developers). It looks like each time a new video driver is loaded, which finds at least one video card to drive and has a compatible fullscreen console driver (VGA_CONSOLE, FRAMEBUFFER_CONSOLE, etc.), console IO aborts on a previous display (if there was one) and continues on a new one, the one connected to a first card controlled by the newly-loaded video driver. Console driver buffer associated with the previous display driver preserves the text which remained there at the moment of the control handoff. When VT is switched, the switch happens on all VT-touched displays, but only the last of them has an interactive console, while all the others show the text which remains in buffers of their console drivers.</p>
+<p>In some multiseat setups this results in such a situation: the seatN display, which is running a VT-disabled X-server (-novtswitch -sharevts), gets driven by a VT subsystem and reacts on VT switch events from seat0, which runs a VT-enabled X-server; its framebuffer is redrawn by the console, although the Х-server still controls input devices and renders the mouse cursor; on reverse switch to the X VT it doesn't restore the image - probably because its switch event handler is blocked by the -novtswitch argument.</p>
+<p>To avoid this, one can ensure that no text console drivers are available for displays on seats which have X-servers running with -novtswitch argument. For example, in a setup with seat0 driven by a proprietary Nvidia driver (which switches the video card to VGA mode on a VT switch) and seat1 by an opensource KMS/DRM driver (which provides an fb device), a custom kernel can be built with CONFIG_VGA_CONSOLE=y, CONFIG_FRAMEBUFFER_CONSOLE=n (note: to disable CONFIG_FRAMEBUFFER_CONSOLE in kernel menuconfig, CONFIG_EMBEDDED=y must be set first).</p>
+<p>The whole problem is likely to be eliminated as soon as David Herrmann succeeds with getting rid of CONFIG_VT and replacing it with his kmscon as a userspace VT switcher, but various stack components are still not ready for this change.</p>
+      <hr>
+      <a href="index.html">Return to index</a>
+
+    </div>
+    <!--footer begin-->
+  </body>
+</html>
