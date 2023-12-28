@@ -12,7 +12,7 @@
       <!--header end-->
 
       <h1>Using Selenium+PhantomJS+Browsermob-proxy for AJAX scraping</h1>
-      <p>📅 2015-06-07</p>
+      <p>📅 2015-06-07 <a href="https://github.com/shatsky/blog/blob/main/posts/2015-06-07_using-seleniumphantomjsbrowsermob-proxy.md">📄 source</a></p>
       <p>On solution to capture HTTP response data in automated headless web scraping setup</p>
 <p>Recently I needed to write a Python script which obtains data from AJAX traffic of a website with a very good anti-robot protection. <a href="https://pypi.python.org/pypi/selenium">Selenium</a> with some browser (I prefer headless <a href="http://phantomjs.org/">PhantomJS</a>) is usually good for such tasks, but in this case it was not enough: I needed raw AJAX data, not webpage contents after its JS processing, and server did not accept direct requests, even with cookies which I've got with Selenium. I tried to get traffic dump from the browser; PhantomJS can generate HAR dump, but it turned out that <a href="https://github.com/ariya/phantomjs/issues/10158">it still misses support for capturing contents</a>. Next idea was to use a capturing proxy; <a href="http://bmp.lightbody.net/">Browsermob-proxy</a> came up as a good choice. It supports HAR, too, and can be easily controlled from Python script with <a href="https://pypi.python.org/pypi/browsermob-proxy/0.6.0">this module</a>, just like a browser with Selenium.</p>
 <p>Here is the code example:</p>
