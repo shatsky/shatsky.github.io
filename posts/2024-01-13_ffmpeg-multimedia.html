@@ -40,6 +40,12 @@
 <li>somehow explicitly cutting on keyframes</li>
 </ul>
 <p>All these solutions seem to result in creation of file which has both video and audio starting from preceding keyframe (synchronized, of course)</p>
+<p><strong>Encode video to H.264</strong>: <code>ffmpeg -i "${input_file}" -c:v libx264 "${output_file}"</code></p>
+<p>If output_file is *.mp4, ffmpeg picks H.264 by default</p>
+<p><strong>Cut videos at defined time interval and render subtitles into video</strong>: <code>ffmpeg -ss ${hh_start}:${mm_start}:${ss_start} -copyts -to ${hh_end}:${mm_end}:${ss_end} -i "${input_file}" -ss ${hh_start}:${mm_start}:${ss_start} -vf subtitles="${input_file_containing_subtitles}:si={subtitles_track_index}" "${output_file}"</code></p>
+<p><code>${input_file_containing_subtitles}</code> is required even if subtitle tracks are contained in input video file, i. e. if duplicating <code>${input_file}</code></p>
+<p><code>:si={subtitles_track_index}</code> is only required if there are multiple subtitle tracks and needed track is not the 1st</p>
+<p><code>-copyts</code> and 2nd <code>-ss</code> are required</p>
 <h3>Reference of used FFmpeg cmdline options</h3>
 <ul>
 <li><code>-codec copy</code>: copy streams without re-encoding, i. e. without added loss of quality</li>
@@ -72,7 +78,7 @@
 <tr>
 <td>Ogg</td>
 <td>Ogg container containing Theora video stream</td>
-<td>Alternative pushed by FOSS community because MP4 standards are not truly free, making them hardly available to non-commercial developers and just incompatible with FOSS philosophy; practically obsoleted by WebM</td>
+<td>Alternative pushed by FOSS community because MP4/H.264 standards are not truly free, making them problematic to implement for non-commercial developers and just incompatible with FOSS philosophy; practically obsoleted by WebM</td>
 </tr>
 <tr>
 <td>WebM</td>
