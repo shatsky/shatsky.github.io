@@ -21,7 +21,7 @@ var mymap = L.map('mapid').setView([46.4788, 30.7277], 13);
 //L.tileLayer('http://127.0.0.1:8000/tiles/{z}/{x}/{y}.png', {
 L.tileLayer('https://raw.githubusercontent.com/shatsky/maps-for-fun-data/2021-08-28/odessa-buildings-age/tiles/{z}/{x}/{y}.png', {
 //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="https://domofoto.ru/">Domofoto</a>, <a href="http://eugene.shatsky.net/">Eugene Shatsky</a> | <a href="https://github.com/shatsky/maps-for-fun/blob/master/README.md">How to make a map like this</a>',
+  attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="https://photobuildings.com/">Domofoto</a>, <a href="http://eugene.shatsky.net/">Eugene Shatsky</a> | <a href="https://github.com/shatsky/maps-for-fun/blob/master/README.md">How to make a map like this</a>',
   maxZoom: 18,
   crossOrigin: true
 }).addTo(mymap);
@@ -169,7 +169,7 @@ var index_osm_building_ids_by_latlng = [];
 function format_content(building) {
   var content = ''
   if ('df_id' in building) {
-    content += 'Domofoto building <a href="https://domofoto.ru/object/'+df_building_id+'/">#'+df_building_id+'</a>'
+    content += 'Domofoto building <a href="https://photobuildings.com/object/'+df_building_id+'/">#'+df_building_id+'</a>'
   }
   return content;
 }
@@ -184,7 +184,7 @@ function render_popup_data() {
       continue;
     }
     for (const df_building_id of Object.keys(data[osm_building_id].df_buildings)) {
-      var df_object_url = 'https://domofoto.ru/object/' + df_building_id + '/';
+      var df_object_url = 'https://photobuildings.com/object/' + df_building_id + '/';
       content += '<a href="' + df_object_url + '">Domofoto object #' + df_building_id + '</a><br>';
       var df_building_data = data[osm_building_id].df_buildings[df_building_id]
       if (df_building_data.address !== undefined) {
@@ -201,9 +201,9 @@ function render_popup_data() {
       }
       if (df_building_data.photos !== undefined) {
         for (const photo_id of df_building_data.photos) {
-          var df_photo_url = 'https://domofoto.ru/photo/'+photo_id+'/?vid='+df_building_id+'/';
+          var df_photo_url = 'https://photobuildings.com/photo/'+photo_id+'/?vid='+df_building_id+'/';
           var photo_id_7digit = (photo_id+10000000+'').slice(1);
-          var df_photo_small_url = 'https://domofoto.ru/photo/'+photo_id_7digit.slice(0,2)+'/'+photo_id_7digit.slice(2,4)+'/'+photo_id_7digit.slice(4,6)+'/'+photo_id+'_s.jpg';
+          var df_photo_small_url = 'https://photobuildings.com/photo/'+photo_id_7digit.slice(0,2)+'/'+photo_id_7digit.slice(2,4)+'/'+photo_id_7digit.slice(4,6)+'/'+photo_id+'_s.jpg';
           content += '<div style="width:250px;height:187px;background:grey"><a href="' + df_photo_url + '"><img src="' + df_photo_small_url + '" style="max-width:100%;max-height:100%;"></a></div><br>';
           // TODO clean up, handle image loading issues
           /*
