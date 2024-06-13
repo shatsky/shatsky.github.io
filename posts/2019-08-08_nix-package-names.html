@@ -25,31 +25,34 @@ A: I think that one of things which makes it hard to understand Nix is that it h
 <table class="table">
 <thead>
 <tr>
-<th>Attribute name (of a derivation set*)</th>
-<th>Derivation name (in a derivation set)</th>
-<th>Package nix expression directory name</th>
+<th></th>
+<th>What it is</th>
+<th>Where it comes from</th>
+<th>How it can be used</th>
+<th>Where it can be seen</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>What it is</td>
+<td>Attribute name (of a derivation set*)</td>
 <td>Name of attribute in nix scope which contains package's derivation set</td>
-<td>String value of "name" attribute in package's derivation set</td>
-</tr>
-<tr>
-<td>Where it comes from</td>
 <td>Statement in some nix expression (usually pkgs/top-level/all-packages.nix) which binds derivation set produced by function from package nix expression to the attribute name</td>
-<td>Statement in package nix expression which binds the value to "name" attribute in a set which is usually passed to the stdenv.mkDerivation</td>
-</tr>
-<tr>
-<td>How it can be used</td>
 <td>Installing via "nix-env -iA"</td>
-<td>Installing via "nix-env -i" (discouraged because search for derivation name in all derivation sets in nix scope is way more expensive than search for attribute name of derivation set)</td>
+<td>Searching via "nix search"; suggestions which Nix provides in the shell when user enters name of a program which doesn't exist in the system but is listed in binary cache index</td>
 </tr>
 <tr>
-<td>Where it can be seen</td>
-<td>Searching via "nix search"; suggestions which Nix provides in the shell when user enters name of a program which doesn't exist in the system but is listed in binary cache index</td>
+<td>Derivation name (in a derivation set)</td>
+<td>String value of "name" attribute in package's derivation set</td>
+<td>Statement in package nix expression which binds the value to "name" attribute in a set which is usually passed to the stdenv.mkDerivation</td>
+<td>Installing via "nix-env -i" (discouraged because search for derivation name in all derivation sets in nix scope is way more expensive than search for attribute name of derivation set)</td>
 <td>Listing via "nix-env -q"; nix store paths (part following the buildhash)</td>
+</tr>
+<tr>
+<td>Package nix expression directory name</td>
+<td>Name of directory which contains package nix expression</td>
+<td>Path in nixpkgs source tree</td>
+<td>- (nixpkgs source tree hierarchy exists for maintainers' convenience, paths are only used internally as callPackage arguments in statements which bind derivation sets to attribute names)</td>
+<td>nixpkgs git and /nix/store paths which contain nixpkgs snapshots; it seems that after nix expressions are loaded and namespace is populated, Nix doesn't remember anything about source file paths</td>
 </tr>
 </tbody>
 </table>
