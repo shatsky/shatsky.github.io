@@ -30,7 +30,7 @@
 &gt; BCDEDIT.EXE /store C:\boot\BCD /displayorder {guid} /addlast
 </code></pre>
 <p>See http://diddy.boot-land.net/grub4dos/files/install_windows.htm for more details.</p>
-<ol>
+<ol start="3">
 <li>
 <p>Download <a href="https://www.slax.org/en/download.php">Slax</a> and extract slax directory to C:\</p>
 </li>
@@ -48,6 +48,7 @@ APPEND vga=normal initrd=/slax/boot/initrfs.img load_ramdisk=1 prompt_ramdisk=0 
 </code></pre>
 <p>Note that grub syntax differs from syslinux one (inline kernel arguments, separate initrd line instead of kernel pseudo-argument).</p>
 <p>Now you can choose 'Start GRUB4DOS' in Windows boot menu and 'slax' in GRUB4DOS menu to boot Slax.</p>
+
       <hr>
       <a href="index.html">Return to index</a>
 

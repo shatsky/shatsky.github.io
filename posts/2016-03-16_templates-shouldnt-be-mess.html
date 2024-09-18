@@ -21,12 +21,14 @@ Django documentation samples and lots of coders mix up indentation of hypertext 
 <p>In detail:</p>
 <ul>
 <li>hypertext is written with common, global indentation hierarchy</li>
-<li>text-producing template tags (variable substitutions, includes, etc.) are placed like the hypertext which they produce:<ul>
+<li>text-producing template tags (variable substitutions, includes, etc.) are placed like the hypertext which they produce:
+<ul>
 <li>tags which produce inline hypertext fragments are placed inside the hypertext lines</li>
 <li>tags which produce (multi)line hypertext fragments are placed on separate lines, indented like the hypertext which they produce, following the global hypertext indentation</li>
 </ul>
 </li>
-<li>non-text-producing, or logic-controlling template tags, which generate no text themselves, but define the logic of template processing (conditional operators, loops, variable assignments, etc.), are another thing:<ul>
+<li>non-text-producing, or logic-controlling template tags, which generate no text themselves, but define the logic of template processing (conditional operators, loops, variable assignments, etc.), are another thing:
+<ul>
 <li>tags which control inline hypertext fragments (e. g. conditional block which controls a hypertext tag attribute) are placed within these lines</li>
 <li>tags which control (multi)line hypertext fragments or no hypertext at all are placed on separate lines, following their own global indentation hierarchy, independent from the one of the hypertext; such template tag lines are separated by empty lines from the hypertext and hypertext-producing template tags around them</li>
 </ul>
@@ -56,6 +58,7 @@ Django documentation samples and lots of coders mix up indentation of hypertext 
   &lt;/body&gt;
 &lt;/html&gt;
 </code></pre>
+
       <hr>
       <a href="index.html">Return to index</a>
 
