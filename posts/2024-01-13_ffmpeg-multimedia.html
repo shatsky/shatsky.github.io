@@ -20,12 +20,14 @@
 <li>TODO creating &quot;video bookmarks&quot;, i. e. playable playlist-like files which refer to time interval in single video file and can be used to quickly create standalone video file for sharing; see VLC-specific M3U <code>#EXTVLCOPT:start-time</code>/<code>stop-time</code>, XSPF</li>
 <li>TODO generic understanding of a/v sync in popular formats</li>
 <li>TODO lossless transcoding of JPEG into more space efficient JPEG-XL</li>
+<li>TODO low latency playback of V4L streams (gstreamer?)</li>
 </ul>
 <h2>Useful FFmpeg commands</h2>
-<p><strong>Download HLS (HTTP Live Streaming) videos</strong>: <code>ffmpeg -i &quot;${url_of_m3u8}&quot; -codec copy &quot;${output_filename}.mp4&quot;</code></p>
+<p><strong>Download HLS (HTTP Live Streaming) videos</strong>: <code>ffmpeg -i &quot;${url_of_m3u8}&quot; -codec copy -seg_max_retry 2147483647 &quot;${output_filename}.mp4&quot;</code></p>
 <p>You may remember &quot;good&quot; old times when web videos embedded in webpages were fetched by browser in single queries as &quot;normal&quot; video files. At the dawn of popularity of YouTube and other *Tubes and *Hubs, Adobe Flash Player based web video players were popular, which played FLV files, allowing to capture request URL via browser dev tools and download the file. Then circa 2007 HTML5 &lt;video&gt; tag was introduced and in many cases it became possible to save video simply from context menu. However, for certain reasons, industry wanted technology which would allow streaming videos as sequences of short &quot;segment&quot; files, each fetched separately. Today, on many websites, even if you get to default context menu of &lt;video&gt; element and try to download, browser will, in best case, download only short fragment; in fact, there's no single video file being fetched, full or partial, during playback; what you will see in browser dev tools, depends. Some websites use proprietary solutions which require &quot;targeted&quot; solutions for video downloading (yt-dlp currently being the &quot;Swiss knife&quot; for these); most websites, however, adopted HLS (HTTP Live Streaming), introduced by Apple circa 2017. If you open browser dev tools on such website and start playback, you will see query to .m3u8 file and then many queries to .ts files. Well, .m3u8 is just M3U playlist in UTF-8, and .ts are &quot;MPEG Transport Stream segments&quot; listed in it, containing fragments of H.264 video stream and audio stream encoded with one of several supported codecs. FFmpeg allows to fetch the playlist with all segments listed in it and copy video and audio streams (without any lossy transcoding) to &quot;normal&quot; video file (MP4 being &quot;native&quot; container for H.264) in one command.</p>
 <p>Note: some recommend adding <code>-bsf:a aac_adtstoasc</code> to convert <a href="https://wiki.multimedia.cx/index.php/ADTS">ADTS</a> to <a href="https://wiki.multimedia.cx/index.php/MPEG-4_Audio#Audio_Specific_Config">ASC</a> (audio stream metadata), but https://ffmpeg.org/ffmpeg-bitstream-filters.html#aac_005fadtstoasc states it's auto-inserted for MP4.</p>
 <p>Note: this is only applicable for DRM-free videos.</p>
+<p>Note: by default ffmpeg skips segment if request fails. Best possible thing to prevent getting broken files currently seems to set seg_max_retry to MAX_INT, https://github.com/FFmpeg/FFmpeg/blob/94f2274a8b61438572f0873ccf430e55ce0e0e2b/libavformat/hls.c#L230C9-L230C22</p>
 <p><strong>Cut videos at defined time interval</strong>: <code>ffmpeg -ss ${hh_start}:${mm_start}:${ss_start} -to ${hh_end}:${mm_end}:${ss_end} -i &quot;${input_file}&quot; -c copy &quot;${output_file}&quot;</code></p>
 <p>Note: most frames in video streams are stored as &quot;deltas&quot;, and only some are full &quot;keyframes&quot;; video has to start with &quot;keyframe&quot;, and cutting time_start will likely not match one, so preceding frames starting with previous keyframe will be copied too; audio stream doesn't have something like &quot;keyframes&quot; synchronized with video ones; therefore, upon copying from MP4 to MP4, ffmpeg can create file with video or audio starting not exactly from 0s, causing minor playback issues in some players. Observations:</p>
 <ul>
@@ -56,9 +58,9 @@
 <li>video stream (codec) format</li>
 <li>audio stream (codec) format</li>
 <li>some metadata format(s)</li>
-<li>container (muxer) format, multiplexing all above so that they can be played synchronously; some container formats are developed to contain only specific stream formats, others are more generic</li>
+<li>container (muxer) format, multiplexing all above so that they can be stored in single file and played synchronously; some container formats are developed to contain only specific stream formats, others are more generic</li>
 </ul>
-<p>Development of all these seems to be mostly driven by development of video formats (obviously being the most complex part of the stack)</p>
+<p>Development of all these seems to be mostly driven by development of video codecs (obviously being the most complex part of the stack)</p>
 <h3>Web video file formats</h3>
 <p>To put simply:</p>
 <table class="table">
@@ -72,18 +74,18 @@
 <tbody>
 <tr>
 <td>MP4</td>
-<td>MP4 container containing H.264/H.265 video stream</td>
-<td>Initially supported in major proprietary browsers developed by commercial companies since HTML5 &lt;video&gt; tag was introduced</td>
+<td>MP4 container containing H.264/H.265 video stream and AAC audio stream</td>
+<td>From &quot;world standartization authorities&quot; ISO/IEC/MPEG/ITU-T/etc., initially supported in major proprietary browsers developed by commercial companies since HTML5 &lt;video&gt; tag was introduced</td>
 </tr>
 <tr>
 <td>Ogg</td>
-<td>Ogg container containing Theora video stream</td>
+<td>Ogg container containing Theora video stream and Vorbis audio stream</td>
 <td>Alternative pushed by FOSS community because MP4/H.264 standards are not truly free, making them problematic to implement for non-commercial developers and just incompatible with FOSS philosophy; practically obsoleted by WebM</td>
 </tr>
 <tr>
 <td>WebM</td>
-<td>MKV container containing VP8/VP9 video stream</td>
-<td>Alternative pushed by Google because commercial companies opposed to implementing Ogg/Theora; Google just bought On2, company which had developed Theora, originally known as VP3, made all its then-latest competitive VP8 codec public domain too, and continued developing it; MKV container chosen for multiplexing had been open standard from the beginning</td>
+<td>MKV container containing VP8/VP9/AV1 video stream and Vorbis/Opus audio stream</td>
+<td>Alternative pushed by Google because commercial companies opposed to implementing Ogg/Theora; Google just bought On2, company which had developed Theora, originally known as VP3, made all its then-latest competitive VP8 codec public domain too, and continued developing it, later as part of AOMedia alliance; MKV container chosen for multiplexing had been open standard from the beginning</td>
 </tr>
 </tbody>
 </table>
@@ -103,14 +105,14 @@
 <tr>
 <td>H.264</td>
 <td>AVC (Advanced Video Coding), MPEG-4 Part 10</td>
-<td>ITU-T and others</td>
+<td>ISO and others</td>
 <td>2004</td>
 <td></td>
 </tr>
 <tr>
 <td>H.265</td>
 <td>HEVC (High Efficiency Video Coding), MPEG-H Part 2</td>
-<td>ITU-T and others</td>
+<td>ISO and others</td>
 <td>2013</td>
 <td></td>
 </tr>
@@ -119,7 +121,7 @@
 <td></td>
 <td>On2 -&gt; Google</td>
 <td>2008</td>
-<td>Bought by Google with its developer company to create WebM video format</td>
+<td>Bought by Google with its developer company to create WebM video format; also used in WebP image format</td>
 </tr>
 <tr>
 <td>VP9</td>
@@ -135,39 +137,129 @@
 <td>2004</td>
 <td>To be precise, VP3 and Theora are not same thing; On2 had released VP3 into public domain, and Xiph.org &quot;improved&quot; it, creating &quot;superset&quot; codec (Theora implementations can decode VP3 streams, but original VP3 can't decode Theora streams)</td>
 </tr>
+<tr>
+<td>AV1</td>
+<td></td>
+<td>Google -&gt; AOMedia</td>
+<td>2018</td>
+<td>Created as successor to Google VP9 by AOMedia, consortium created by key industry players incl. Amazon, Google, Intel, Microsoft and Mozilla for development of open, royalty-free web multimedia standards; also used in AVIF image format</td>
+</tr>
 </tbody>
 </table>
-<h3>Containers</h3>
+<h3>Container and file formats</h3>
+<p><em>Note: some container formats are defined on top of other, more generic ones, &quot;extending&quot; them or, from other point of view, &quot;limiting&quot; variety of data which they can contain; some of these &quot;base&quot; container formats can encode information about contained data types and can be used as file formats themselves, meaning that &quot;extended&quot; ones are merely &quot;convenience aliases&quot; indicating subsets supported in certain domains; others don't</em></p>
 <table class="table">
 <thead>
 <tr>
 <th>Name</th>
+<th>Extends</th>
 <th>Filename ext</th>
 <th>Contained video streams</th>
 <th>Contained audio streams</th>
+<th>Org</th>
+<th>Year</th>
 <th>Notes</th>
 </tr>
 </thead>
 <tbody>
 <tr>
+<td>ISOBMFF</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>ISO and others</td>
+<td>2004</td>
+<td>base container format</td>
+</tr>
+<tr>
 <td>MP4</td>
+<td>ISOBMFF</td>
 <td>.mp4</td>
 <td>usually H.265 or H.264</td>
 <td>usually AAC</td>
+<td>ISO and others</td>
+<td>2001</td>
 <td></td>
 </tr>
 <tr>
 <td>MKV</td>
-<td>.mkv (generic), .webm (indicates VP8/VP9 video stream)</td>
+<td></td>
+<td>.mkv</td>
 <td>virtually any</td>
 <td>virtually any</td>
-<td>&quot;Matroska&quot;, totally generic container format</td>
+<td>Matroska project</td>
+<td>2002</td>
+<td>&quot;Matroska&quot;, totally generic container and file format</td>
+</tr>
+<tr>
+<td>WebM</td>
+<td>MKV</td>
+<td>.webm</td>
+<td>VP8/VP9/AV1</td>
+<td>Vorbis/Opus</td>
+<td>Google</td>
+<td>2010</td>
+<td></td>
 </tr>
 <tr>
 <td>Ogg</td>
+<td></td>
 <td>.ogg</td>
 <td>usually Theora</td>
 <td>usually Vorbis or FLAC</td>
+<td>Xiph.org</td>
+<td>2003</td>
+<td></td>
+</tr>
+<tr>
+<td>RIFF</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Microsoft, IBM</td>
+<td>1991</td>
+<td>base container format for many formats, including WebP and historically relevant (non-Web) AVI (&quot;Audio Video Interleave&quot;, popular for storing videos in 90s-00s, usually containing MPEG-1/2/4 Part 2 video streams) and WAV (&quot;Waveform Audio File Format&quot;, popular for storing audio recordings in 90s-00s, usually containing LPCM audio stream)</td>
+</tr>
+<tr>
+<td>WebP</td>
+<td>RIFF</td>
+<td>.webp</td>
+<td>VP8 (single frame)</td>
+<td>-</td>
+<td>Google</td>
+<td>2010</td>
+<td></td>
+</tr>
+<tr>
+<td>HEIF</td>
+<td>ISOBMFF</td>
+<td>.heif</td>
+<td></td>
+<td>-</td>
+<td>ISO and others</td>
+<td>2015</td>
+<td>container and file format designed for images and image sequences</td>
+</tr>
+<tr>
+<td>HEIC</td>
+<td>HEIF</td>
+<td>.heic</td>
+<td>H.265 (single frame)</td>
+<td>-</td>
+<td>ISO and others</td>
+<td>2015</td>
+<td></td>
+</tr>
+<tr>
+<td>AVIF</td>
+<td>HEIF</td>
+<td>.avif</td>
+<td>AV1 (single frame)</td>
+<td>-</td>
+<td>AOMedia</td>
+<td>2019</td>
 <td></td>
 </tr>
 </tbody>
