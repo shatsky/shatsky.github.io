@@ -14,7 +14,7 @@
       <h1>Workaround for Linux amdgpu reset bug for Polaris GPU</h1>
       <p>📅 2020-01-22 <a href="https://github.com/shatsky/blog/blob/main/posts/2020-01-22_linux-amdgpu-reset-bug-polaris-workaround.md">📄 source</a></p>
       <p>Found workaround for irritating bug occuring in Linux VFIO setups with Polaris GPU passthrough</p>
-<p>This is a copy of my post at https://www.reddit.com/r/VFIO/comments/enmnnj/trying_to_understand_amd_polaris_reset_bug/</p>
+<p>This is a copy of my post at <a href="https://www.reddit.com/r/VFIO/comments/enmnnj/trying_to_understand_amd_polaris_reset_bug/">https://www.reddit.com/r/VFIO/comments/enmnnj/trying_to_understand_amd_polaris_reset_bug/</a></p>
 <p>DISCLAIMER: I'm not an expert in kernel programming/amdgpu/vfio/PCI architecture and may be wrong.</p>
 <p>As many others here, I want to be able to switch between using my graphics card in Linux host and in Windows guest at wish. As many others, I run into &quot;Unknown PCI header type '127'&quot; error. I've noticed that:</p>
 <ul>
@@ -68,7 +68,7 @@
 <li>unbind the card from amdgpu (to prevent issues upon the next step)</li>
 <li>run <code>setpci -s 0000:01:00.0 7c.l=39d5e86b</code> to trigger the same reset mechanism which amdgpu uses (this is only applicable after the card has been initialized by amdgpu, which I always know about, therefore don't care about checking SMU state)</li>
 </ul>
-<p>Script and patch: https://gist.github.com/shatsky/2c8959eb3b9d2528ee8a7b9f58467aa0</p>
+<p>Script and patch: <a href="https://gist.github.com/shatsky/2c8959eb3b9d2528ee8a7b9f58467aa0">https://gist.github.com/shatsky/2c8959eb3b9d2528ee8a7b9f58467aa0</a></p>
 <p>UPDATE 6: 2020-03-19, after months of active use, I've encountered kernel issue for the first time; interpreter got stuck in uninterruptible sleep executing script line</p>
 <pre><code>echo &quot;$device_addr&quot; &gt; &quot;/sys/bus/pci/drivers/amdgpu/unbind&quot;
 </code></pre>
