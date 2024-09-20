@@ -53,10 +53,10 @@
 <li><code>-codec copy</code>: copy streams without re-encoding, i. e. without added loss of quality</li>
 </ul>
 <h2>Formats</h2>
-<p>&quot;Video format&quot; is usually combination of</p>
+<p>&quot;Video file format&quot; is usually combination of</p>
 <ul>
-<li>video stream (codec) format</li>
-<li>audio stream (codec) format</li>
+<li>video coding format</li>
+<li>audio coding format</li>
 <li>some metadata format(s)</li>
 <li>container (muxer) format, multiplexing all above so that they can be stored in single file and played synchronously; some container formats are developed to contain only specific stream formats, others are more generic</li>
 </ul>
@@ -90,12 +90,11 @@
 </tbody>
 </table>
 <p>Full reality is more complicated, for each format there are more codecs (which are extremely rarely used), but at the same time some major browsers don't support even some of those mentioned (or did in the past but have dropped support). HTML5 itself doesn't actually define required formats which should be supported for &lt;video&gt; (but allows to provide several different files)</p>
-<h3>Video codecs</h3>
+<h3>Video and image coding formats</h3>
 <table class="table">
 <thead>
 <tr>
 <th>Name</th>
-<th>Aka</th>
 <th>Org</th>
 <th>Year</th>
 <th>Notes</th>
@@ -103,49 +102,56 @@
 </thead>
 <tbody>
 <tr>
-<td>H.264</td>
-<td>AVC (Advanced Video Coding), MPEG-4 Part 10</td>
+<td>H.264 aka AVC</td>
 <td>ISO and others</td>
 <td>2004</td>
-<td></td>
+<td>&quot;MPEG-4 Part 10: Advanced Video Coding&quot;, name &quot;H.264&quot; being its ITU-T number; currently most popular because hardware for efficient decoding is most available in consumer devices</td>
 </tr>
 <tr>
-<td>H.265</td>
-<td>HEVC (High Efficiency Video Coding), MPEG-H Part 2</td>
+<td>H.265 aka HEVC</td>
 <td>ISO and others</td>
 <td>2013</td>
-<td></td>
+<td>&quot;MPEG-H Part 2: High Efficiency Video Coding&quot;, name &quot;H.265&quot; being its ITU-T number</td>
 </tr>
 <tr>
 <td>VP8</td>
-<td></td>
 <td>On2 -&gt; Google</td>
 <td>2008</td>
 <td>Bought by Google with its developer company to create WebM video format; also used in WebP image format</td>
 </tr>
 <tr>
 <td>VP9</td>
-<td></td>
 <td>Google</td>
 <td>2012</td>
 <td>Subsequent development of VP8</td>
 </tr>
 <tr>
-<td>Theora</td>
-<td>VP3</td>
+<td>Theora aka VP3</td>
 <td>On2 -&gt; Xiph.org</td>
 <td>2004</td>
 <td>To be precise, VP3 and Theora are not same thing; On2 had released VP3 into public domain, and Xiph.org &quot;improved&quot; it, creating &quot;superset&quot; codec (Theora implementations can decode VP3 streams, but original VP3 can't decode Theora streams)</td>
 </tr>
 <tr>
 <td>AV1</td>
-<td></td>
 <td>Google -&gt; AOMedia</td>
 <td>2018</td>
 <td>Created as successor to Google VP9 by AOMedia, consortium created by key industry players incl. Amazon, Google, Intel, Microsoft and Mozilla for development of open, royalty-free web multimedia standards; also used in AVIF image format</td>
 </tr>
+<tr>
+<td>JPEG</td>
+<td>JPEG</td>
+<td>1992</td>
+<td>JPEG is actually image codec, but it's technically possible to use image codecs for compressing video streams (quite inefficiently as these can't handle interframe redundancy); while new image formats based on &quot;true&quot; video codecs are becoming popular, JPEG is still most common one, and even still relevant as video codec, used by many cheap webcams and video capture devices (chips for hardware JPEG compression are much more affordable then ones for &quot;true&quot; video codecs), stream of JPEG-compressed frames known as &quot;MJPEG video&quot;</td>
+</tr>
+<tr>
+<td>JPEG-XL</td>
+<td></td>
+<td>2022</td>
+<td>Image codec which is more efficient than JPEG and allows &quot;lossless recompression of lossy-compressed JPEG&quot;, so that existing JPEG files can be compressed ~20% more without quality loss; however Google decided to oppose it, removing initially added support from Chrome and ignoring requests to re-add it</td>
+</tr>
 </tbody>
 </table>
+<p><em>MPEG which is appearing a lot in names of multimedia standards is actually &quot;Moving Picture Experts Group&quot;, joint entity of ISO and IEC, &quot;world standartization authorities&quot;, something like UN for tech corporations, which develop shared standards via it; these standards can be accessed by anyone, but not for free, and can and usually are covered by patents, owners of which can demand royalties for using tech solutions covered by them</em></p>
 <h3>Container and file formats</h3>
 <p><em>Note: some container formats are defined on top of other, more generic ones, &quot;extending&quot; them or, from other point of view, &quot;limiting&quot; variety of data which they can contain; some of these &quot;base&quot; container formats can encode information about contained data types and can be used as file formats themselves, meaning that &quot;extended&quot; ones are merely &quot;convenience aliases&quot; indicating subsets supported in certain domains; others don't</em></p>
 <table class="table">
@@ -170,7 +176,7 @@
 <td></td>
 <td>ISO and others</td>
 <td>2004</td>
-<td>base container format</td>
+<td>&quot;MPEG-4 Part 12: ISO base media file format&quot;, base container format, developed as &quot;generalization&quot; of MP4</td>
 </tr>
 <tr>
 <td>MP4</td>
@@ -180,7 +186,7 @@
 <td>usually AAC</td>
 <td>ISO and others</td>
 <td>2001</td>
-<td></td>
+<td>&quot;MPEG-4 Part 14: MP4 file format&quot;, originally based on Apple QuickTime file format (QTFF, .mov), .mp4 files can contain streams of many different types, but it seems that MP4 standard covers specifically MPEG-4 streams, and anything else means it's actually different sub/superset of ISOBMFF, also they share &quot;Registration Authority&quot; <a href="https://mp4ra.org/">https://mp4ra.org/</a></td>
 </tr>
 <tr>
 <td>MKV</td>
@@ -190,7 +196,7 @@
 <td>virtually any</td>
 <td>Matroska project</td>
 <td>2002</td>
-<td>&quot;Matroska&quot;, totally generic container and file format</td>
+<td>&quot;Matroska&quot;, totally generic container and file format, open standard</td>
 </tr>
 <tr>
 <td>WebM</td>
@@ -240,7 +246,7 @@
 <td>-</td>
 <td>ISO and others</td>
 <td>2015</td>
-<td>container and file format designed for images and image sequences</td>
+<td>&quot;MPEG-H Part 12: High Efficiency Image File Format&quot;, container and file format designed for images and image sequences</td>
 </tr>
 <tr>
 <td>HEIC</td>
@@ -261,6 +267,16 @@
 <td>AOMedia</td>
 <td>2019</td>
 <td></td>
+</tr>
+<tr>
+<td>JFIF</td>
+<td></td>
+<td>.jpg</td>
+<td>JPEG (single frame)</td>
+<td>-</td>
+<td></td>
+<td>1992</td>
+<td>&quot;JPEG File Interchange Format&quot; aka JPEG file format, there's also EXIF &quot;EXchangeable Image File format&quot; created later by camera manufacturers, which is almost identical but has some formal incompatibility, in practice &quot;mixed JFIF+EXIF&quot; seems to be used everywhere, with metadata encoded as per EXIF spec</td>
 </tr>
 </tbody>
 </table>
