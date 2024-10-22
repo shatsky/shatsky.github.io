@@ -1,0 +1,62 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>fwknop on NixOS for single packet authentication</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container py-5">
+      <!--header end-->
+
+      <h1>fwknop on NixOS for single packet authentication</h1>
+      <p>📅 2024-10-01 <a href="https://github.com/shatsky/blog/blob/main/posts/2024-10-01_fwknop-nixos.md">📄 source</a></p>
+      <p>Hide your private NixOS server from hordes of crackers which scan IPs and probe for vulnerabilities, while retaining ability to access it yourself from any network</p>
+<p>How this works:</p>
+<ul>
+<li>firewall is initially configured to drop all incoming packets</li>
+<li>fwknopd captures packets on specified interface and upon capturing UDP packet with dest port 62201 it checks its contents as fwknop auth packet; note that by default fwknopd doesn't bind to this port, with all ports closed by firewall it's not possible to receive packet with dest port via binding/listening to it as regular network service daemons do, so fwknopd works like sniffer (though it's also possible to run it in UDP server/listener mode)</li>
+<li>if captured packet is valid fwknop auth packet aka &quot;knock&quot;, successfully decrypted with specified pre shared aes key, and its hmac is successfully validated with preshared hmac key, and it contains nonce which is valid for current time interval and not present in fwknopd ring buffer for nonces already received within current time interval (to prevent replay attacks), fwknopd adds temporary firewall exception rule which opens specified port for single IP address specified in knock packet (connections which are established while the port is opened will survive expiration of this rule, as firewall is normally configured to accept incoming packets which belong to already established connections)</li>
+</ul>
+<p><em>Obviously gateways which carry traffic between your client and your server can see that your server exists and is protected like this, possibly drawing attention to it from even more powerful entities, but that's a matter of choice:)</em></p>
+<p><em>fwknop is for FireWall Knock OPerator</em></p>
+<p>fwknop package including both fwknopd server and fwknop client is in nixpkgs, but it's regular package which is installed into its Nix store path and isn't &quot;integrated&quot; into NixOS in any way. To make it run as systemd service with my config, I explicitly declare systemd service and config files in /etc in my configuration.nix:</p>
+<pre><code>  systemd.services.fwknopd = {
+    description = &quot;fwknopd Service&quot;;
+    after = [ &quot;network.target&quot; ];
+    serviceConfig.ExecStart = &quot;${pkgs.fwknop}/bin/fwknopd --conf /etc/fwknop/fwknopd.conf --foreground&quot;;
+    wantedBy = [ &quot;multi-user.target&quot; ];
+  };
+  environment.etc.&quot;fwknop/fwknopd.conf&quot;.text = ''
+    PCAP_INTF           eth0;
+  '';
+  environment.etc.&quot;fwknop/access.conf&quot;.text = ''
+    SOURCE                     ANY
+    OPEN_PORTS                 tcp/22
+    REQUIRE_SOURCE_ADDRESS     Y
+    KEY_BASE64:                Sz80RjpXOlhH2olGuKBUamHKcqyMBsS9BTgLaMugUsg=
+    HMAC_KEY_BASE64:           c0TOaMJ2aVPdYTh4Aa25Dwxni7PrLo2zLAtBoVwSepkvH6nLcW45Cjb9zaEC2SQd03kaaV+Ckx3FhCh5ohNM5Q==
+  '';
+</code></pre>
+<p>These keys are from documentation example, don't bother trying to find my server:) Convenient fwknop client cmd to generate random keys: <code>fwknop --key-gen</code></p>
+<p>fwknop client command to send auth packet: <code>fwknop --access tcp/22 --allow-ip ${CLIENT_IP} --destination ${SERVER_IP} --key-base64-rijndael ${KEY_BASE64} --key-base64-hmac ${HMAC_KEY_BASE64}</code> (or check docs to make it read keys from file so that they are not visible in process cmdline)</p>
+<p>NixOS by default allows incoming ICMPv4 echo requests, to prevent this: <code>networking.firewall.allowPing = false</code></p>
+<p>NixOS by default opens ports for network services which you enable via its config, to prevent this for sshd: <code>services.openssh.openFirewall = false</code></p>
+<p>And just to have all in one place, to allow SSH access for just one user and only with key auth:</p>
+<pre><code>services.openssh.settings = {
+  PasswordAuthentication = false;
+  KbdInteractiveAuthentication = false;
+  AllowUsers = [ &quot;user&quot; ];
+};
+</code></pre>
+<p>and add public key to ~user/.ssh/authorized_keys</p>
+
+      <hr>
+      <a href="index.html">Return to index</a>
+
+    </div>
+    <!--footer begin-->
+  </body>
+</html>
