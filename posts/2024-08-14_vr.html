@@ -136,7 +136,35 @@
 </ul>
 <p><em>TODO: Android &quot;VR helper&quot; setting, OpenXR &quot;standard loader&quot;</em></p>
 <p><em>TODO: which protocols are used between server and client? Video is universally sent as H.264/H.265/AV1-compressed stream, but what about VR-specific metadata for frames, such as frame submission timing for reprojection? Clocks sync? <a href="https://github.com/alvr-org/ALVR/wiki/How-ALVR-works#the-streaming-pipeline-overview">https://github.com/alvr-org/ALVR/wiki/How-ALVR-works#the-streaming-pipeline-overview</a> .</em></p>
-<p><em>TODO: QR codes of Cardboard VR viewers</em></p>
+<h2>QR codes of Cardboard VR viewers</h2>
+<p>QR code actually encodes URL of format <code>https://google.com/cardboard/cfd?p={device_params_string}</code> (or URL <a href="https://g.co/cardboard">https://g.co/cardboard</a> which indicates standard &quot;Cardboard Viewer v1&quot; device, or URL which redirects to such URL, see <a href="https://github.com/googlevr/cardboard/issues/444">https://github.com/googlevr/cardboard/issues/444</a> <a href="https://developers.google.com/cardboard/reference/unity/class/Google/XR/Cardboard/Api#savedeviceparams">https://developers.google.com/cardboard/reference/unity/class/Google/XR/Cardboard/Api#savedeviceparams</a> ), where <code>{device_params_string}</code> is base64-encoded serialized protobuf message of format DeviceParams, defined and explained in <a href="https://github.com/googlevr/cardboard/blob/master/proto/cardboard_device.proto">https://github.com/googlevr/cardboard/blob/master/proto/cardboard_device.proto</a> . To parse it with Python ( <a href="https://protobuf.dev/getting-started/pythontutorial/">https://protobuf.dev/getting-started/pythontutorial/</a> ):</p>
+<ul>
+<li>clone <a href="https://github.com/googlevr/cardboard">https://github.com/googlevr/cardboard</a></li>
+<li>install &quot;protoc&quot; tool and compile .proto file to Python via executing command in repo dir: <code>protoc --proto_path=proto/ --python_out=. cardboard_device.proto</code> , should produce file &quot;cardboard_device_pb2.py&quot;</li>
+<li>install &quot;protobuf&quot; Python module and execute following Python code:</li>
+</ul>
+<pre><code>import base64
+import cardboard_device_pb2
+device_params = cardboard_device_pb2.DeviceParams()
+device_params.ParseFromString(base64.b64decode(device_params_string))
+print(device_params)
+</code></pre>
+<p>Example output for device_params_string <code>CgZIb21pZG8SDUhvbWlkbyAibWluaSIdhxZZPSW28309KhAAAEhCAABIQgAASEIAAEhCWAE1KVwPPToIexQuPs3MTD1QAGAC</code>:</p>
+<pre><code>vendor: &quot;Homido&quot;
+model: &quot;Homido \&quot;mini\&quot;&quot;
+screen_to_lens_distance: 0.05299999937415123
+inter_lens_distance: 0.06199999898672104
+left_eye_field_of_view_angles: 50.0
+left_eye_field_of_view_angles: 50.0
+left_eye_field_of_view_angles: 50.0
+left_eye_field_of_view_angles: 50.0
+tray_to_lens_distance: 0.03500000014901161
+distortion_coefficients: 0.17000000178813934
+distortion_coefficients: 0.05000000074505806
+vertical_alignment: CENTER
+primary_button: TOUCH
+</code></pre>
+<p>If &quot;Skip&quot; button is pressed in Cardboard app QR code scan dialog, Cardboard sets params for &quot;Cardboard Viewer v1&quot; which are defined in class <code>CardboardV1DeviceParams</code> in <a href="https://github.com/googlevr/cardboard/blob/master/sdk/device_params/android/java/com/google/cardboard/sdk/deviceparams/CardboardV1DeviceParams.java#L21">https://github.com/googlevr/cardboard/blob/master/sdk/device_params/android/java/com/google/cardboard/sdk/deviceparams/CardboardV1DeviceParams.java#L21</a></p>
 <h1>Linux VR desktop</h1>
 <p>I'm currently interested in &quot;simple&quot; solution with single desktop &quot;projected&quot; on VR surface, like a giant screen floating in space in front of user, initially positioned on HMD virtual image plane, with possibility to lock to head/re-center it in case it drifts.</p>
 <ul>
