@@ -1,0 +1,38 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gadgets are controlled by system software vendors, not owners</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container py-5">
+      <!--header end-->
+
+      <h1>Gadgets are controlled by system software vendors, not owners</h1>
+      <p>📅 2024-10-17 <a href="https://github.com/shatsky/blog/blob/main/posts/2024-10-17_software-security-vs-user-ableness.md">📄 source</a></p>
+      <p>Thoughts about conflict between software security and user ableness, attempts to generalize and formalize, find possible compromise</p>
+<p>Modern mobile operating systems treat device owner not as person controlling the device. Software is partitioned into &quot;system&quot; and &quot;apps&quot;, all of them are immutable and can only be changed via update mechanisms, which replace previous immutable versions with new ones, fetched from &quot;verified&quot; external source. User is limited to interaction with device to apps, which have very limited permissions. Of course this is done to solve certain problems which reliability- and security-conscious user normally should want to be solved:</p>
+<ul>
+<li><strong>software integrity</strong>: it is only possible to guarantee correct and secure operation of the software if it is in some &quot;known/valid/verified/trusted&quot; state. However, &quot;Android-like&quot; partitioning of the software into enormous immutable units makes it <strong>extremely hard to modify software</strong>. Basically, for any change in system, user has to set up enormous development env on other device, find out where in the enormous source tree consisting of numerous projects is something they want to change, run full build... And start mantaining their own fork if they want updates with their change
+<ul>
+<li>I believe that with NixOS approach it is possible to achieve integrity while retaining possibility to relatively easily modify software; basically, NixOS partitions software into smallest &quot;immutable units&quot;, which correspond to individual upstream projects like libs, progs and config files which system and apps consist of (like packages in oldschool Linux distros), it allows to have &quot;comprehendable recipe&quot; for system customizations and apply it on running system, building new instances of only those immutable units which are affected by described customizations</li>
+</ul>
+</li>
+<li><strong>protection from possibly malicious apps</strong>: apps are not trusted both by user and by providers of other apps, and are executed with minimal permissions. However, &quot;minimal permissions&quot; here actually means not &quot;minimal for doing what user needs the software to do&quot;, but &quot;minimal for what platform developers decided user might need apps to do&quot;. Apps are seen as agents of will of their providers, not of the user, which is also reflected by the fact that Android reuses ancient &quot;Unix user&quot; thing to identify not users, but apps, each installed app getting its uid with which its processes are executed. Of course there are &quot;extra permissions&quot; which apps can request and be granted, but <strong>there's always something which is practical to do but not possible to do without bypassing sandboxing,</strong> that's why Unix has &quot;root&quot; which is actually a tool for bypassing system security. Android sandboxing with all possible &quot;extra permissions&quot; leaves apps unable to do things as important for power user as reading network routing table, and rooting is seen as terrible sin by Android security community, primarily because it makes possible to break aforementioned integrity: once software has root, it can make changes to anything incl. cryptographic stuff so that changed software can run without triggering integrity check failure; the idea that user might want exactly this, specific local program which they trust to produce new trusted software on the device itself, possibly replacing older software, is rejected
+<ul>
+<li>one of arguments against possibility of giving root permissions to apps is that having any UI to allow root would mean that shell can get root, and shell is a huge attack surface. However shell anyway has access to all sensitive information which user ever sees, and it should possible to split shell into &quot;minimal part with UX for privilege elevation requests and minimal attack surface&quot; and &quot;full UX part&quot; running on top of first one</li>
+<li>funnily enough, Android sandboxing doesn't even have true filesystem access isolation. Apps can create files in &quot;user storage&quot; even without storage access permission, enumerate and access any files created by them; enumeration exposes subset of directory hierarchy over which contains accessible files; files are accessible if they are owned by same uid which app processes are running with. <em>Yes, this means Chrome can enumerate and access all files ever downloaded via it, incl. renamed/moved, check file:///sdcard .</em></li>
+</ul>
+</li>
+</ul>
+
+      <hr>
+      <a href="index.html">Return to index</a>
+
+    </div>
+    <!--footer begin-->
+  </body>
+</html>
